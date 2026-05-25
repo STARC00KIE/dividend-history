@@ -69,3 +69,4 @@ uv.lock
 
 # Claude
 .claude/
+.vercel
