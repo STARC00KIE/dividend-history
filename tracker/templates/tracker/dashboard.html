@@ -1,0 +1,110 @@
+{% extends "tracker/base.html" %}
+{% block title %}대시보드 · Dividend Tracker{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">대시보드</h1>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-label">총 평가액</div>
+        <div class="stat-value">
+          {% if total_market_value is not None %}
+            ${{ total_market_value|floatformat:2 }}
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-label">연 예상 배당</div>
+        <div class="stat-value">${{ total_annual_income|floatformat:2 }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card stat-card">
+      <div class="card-body">
+        <div class="stat-label">평균 Yield</div>
+        <div class="stat-value">
+          {% if avg_yield is not None %}
+            {{ avg_yield|floatformat:2 }}%
+          {% else %}
+            <span class="text-muted">—</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <strong>향후 12개월 예상 수입</strong>
+    <a href="{% url 'projection_view' %}" class="btn btn-sm btn-outline-primary">상세 보기</a>
+  </div>
+  <div class="card-body">
+    <canvas id="projectionChart" height="100"></canvas>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><strong>보유 종목</strong></div>
+  <div class="card-body p-0">
+    {% if holdings %}
+      <table class="table mb-0">
+        <thead>
+          <tr>
+            <th>종목</th>
+            <th class="text-end">보유 수</th>
+            <th class="text-end">평가액</th>
+            <th class="text-end">연 예상 배당</th>
+            <th class="text-end">Yield</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in holdings %}
+            <tr>
+              <td><a href="{% url 'ticker_detail' h.ticker.symbol %}">{{ h.ticker.symbol }}</a> <small class="text-muted">{{ h.ticker.name }}</small></td>
+              <td class="text-end">{{ h.shares }}</td>
+              <td class="text-end">{% if h.market_value is not None %}${{ h.market_value|floatformat:2 }}{% else %}—{% endif %}</td>
+              <td class="text-end">${{ h.annual_income|floatformat:2 }}</td>
+              <td class="text-end">{% if h.ticker.current_yield is not None %}{{ h.ticker.current_yield|floatformat:2 }}%{% else %}—{% endif %}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="p-4 text-center text-muted">
+        보유 종목이 없습니다. <a href="{% url 'ticker_add' %}">먼저 종목을 추가</a>하세요.
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('projectionChart');
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ projection_labels|safe }},
+        datasets: [{
+          label: '예상 배당 ($)',
+          data: {{ projection_values|safe }},
+          backgroundColor: 'rgba(13, 110, 253, 0.6)',
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  });
+</script>
+{% endblock %}

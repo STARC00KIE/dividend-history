@@ -1,0 +1,82 @@
+{% extends "tracker/base.html" %}
+{% block title %}{{ ticker.symbol }} · Dividend Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h1 class="mb-0">{{ ticker.symbol }} <small class="text-muted fs-5">{{ ticker.name }}</small></h1>
+    <small class="text-muted">{{ ticker.currency }} · {{ ticker.get_dividend_frequency_display }}</small>
+  </div>
+  <div class="d-flex gap-2">
+    <form method="post" action="{% url 'ticker_sync' ticker.symbol %}" hx-post="{% url 'ticker_sync' ticker.symbol %}" hx-target="#sync-status">
+      {% csrf_token %}
+      <button class="btn btn-outline-primary" type="submit">↻ yfinance 동기화</button>
+    </form>
+    <form method="post" action="{% url 'ticker_delete' ticker.symbol %}" onsubmit="return confirm('정말 삭제하시겠습니까?');">
+      {% csrf_token %}
+      <button class="btn btn-outline-danger" type="submit">삭제</button>
+    </form>
+  </div>
+</div>
+
+<div id="sync-status">
+  {% include "tracker/partials/ticker_sync_status.html" %}
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="stat-label">최근 가격</div>
+      <div class="stat-value">{% if ticker.quote %}${{ ticker.quote.price|floatformat:2 }}{% else %}—{% endif %}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="stat-label">연 환산 배당</div>
+      <div class="stat-value">${{ ticker.annualized_dividend|floatformat:4 }}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="stat-label">현재 Yield</div>
+      <div class="stat-value">{% if ticker.current_yield is not None %}{{ ticker.current_yield|floatformat:2 }}%{% else %}—{% endif %}</div>
+    </div></div>
+  </div>
+  <div class="col-md-3">
+    <div class="card stat-card"><div class="card-body">
+      <div class="stat-label">보유 합계</div>
+      <div class="stat-value">{% with total=holdings|length %}{{ total }} 라인{% endwith %}</div>
+    </div></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><strong>배당 이력 (최근 50건)</strong></div>
+  <div class="card-body p-0">
+    {% if dividends %}
+    <table class="table mb-0">
+      <thead>
+        <tr>
+          <th>배당락일 (ex)</th>
+          <th>지급일</th>
+          <th class="text-end">주당</th>
+          <th>출처</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in dividends %}
+          <tr>
+            <td>{{ d.ex_date }}</td>
+            <td>{{ d.pay_date|default:"—" }}</td>
+            <td class="text-end">${{ d.amount_per_share|floatformat:6 }}</td>
+            <td><span class="badge bg-{% if d.source == 'YFINANCE' %}primary{% else %}secondary{% endif %}">{{ d.get_source_display }}</span></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="p-4 text-center text-muted">아직 배당 이력이 없습니다. 위 동기화 버튼을 누르거나 <a href="{% url 'dividend_add' %}">수동 추가</a>하세요.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

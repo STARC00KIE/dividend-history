@@ -1,0 +1,48 @@
+{% extends "tracker/base.html" %}
+{% block title %}보유 · Dividend Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="mb-0">보유</h1>
+  <a class="btn btn-primary" href="{% url 'holding_add' %}">+ 보유 추가</a>
+</div>
+
+{% if holdings %}
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th>종목</th>
+      <th class="text-end">보유 수</th>
+      <th class="text-end">평균 단가</th>
+      <th>취득일</th>
+      <th class="text-end">평가액</th>
+      <th class="text-end">연 예상 배당</th>
+      <th class="text-end">YoC</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for h in holdings %}
+      <tr>
+        <td><a href="{% url 'ticker_detail' h.ticker.symbol %}">{{ h.ticker.symbol }}</a></td>
+        <td class="text-end">{{ h.shares }}</td>
+        <td class="text-end">{% if h.average_cost %}${{ h.average_cost|floatformat:4 }}{% else %}—{% endif %}</td>
+        <td>{{ h.acquired_at|default:"—" }}</td>
+        <td class="text-end">{% if h.market_value is not None %}${{ h.market_value|floatformat:2 }}{% else %}—{% endif %}</td>
+        <td class="text-end">${{ h.annual_income|floatformat:2 }}</td>
+        <td class="text-end">{% if h.yield_on_cost is not None %}{{ h.yield_on_cost|floatformat:2 }}%{% else %}—{% endif %}</td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-secondary" href="{% url 'holding_edit' h.pk %}">수정</a>
+          <form method="post" action="{% url 'holding_delete' h.pk %}" class="d-inline" onsubmit="return confirm('삭제할까요?');">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit">삭제</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="alert alert-info">보유 종목이 없습니다.</div>
+{% endif %}
+{% endblock %}

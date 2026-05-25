@@ -1,0 +1,56 @@
+{% extends "tracker/base.html" %}
+{% block title %}종목 추가 · Dividend Tracker{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">종목 추가</h1>
+
+<div class="row g-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><strong>자동 추가 (yfinance)</strong></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'ticker_add' %}">
+          {% csrf_token %}
+          <label class="form-label">Symbol</label>
+          {{ quick_form.symbol }}
+          {% if quick_form.symbol.errors %}<div class="text-danger small">{{ quick_form.symbol.errors }}</div>{% endif %}
+          <small class="text-muted d-block mt-2">Yahoo Finance 심볼을 입력하면 이름·통화·지급주기와 배당 이력을 자동 수집합니다.</small>
+          <button class="btn btn-primary mt-3" type="submit">자동 수집 후 추가</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><strong>수동 등록</strong></div>
+      <div class="card-body">
+        <form method="post" action="{% url 'ticker_manual_create' %}">
+          {% csrf_token %}
+          <div class="mb-3">
+            <label class="form-label">Symbol</label>
+            {{ manual_form.symbol }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">이름</label>
+            {{ manual_form.name }}
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label">통화</label>
+              {{ manual_form.currency }}
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label">지급 주기</label>
+              {{ manual_form.dividend_frequency }}
+            </div>
+          </div>
+          {% if manual_form.errors %}
+            <div class="text-danger small">{{ manual_form.errors }}</div>
+          {% endif %}
+          <button class="btn btn-secondary" type="submit">수동 등록</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

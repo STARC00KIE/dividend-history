@@ -1,0 +1,10 @@
+{% extends "tracker/base.html" %}
+{% block content %}
+<h1>{{ ticker.symbol }} 삭제</h1>
+<p>이 종목과 관련된 보유/배당 이력이 모두 삭제됩니다. 진행하시겠습니까?</p>
+<form method="post">
+  {% csrf_token %}
+  <button class="btn btn-danger" type="submit">삭제</button>
+  <a class="btn btn-secondary" href="{% url 'ticker_detail' ticker.symbol %}">취소</a>
+</form>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "tracker/base.html" %}
+{% block title %}월간 예상 · Dividend Tracker{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">향후 12개월 예상 배당 수입</h1>
+
+<div class="card mb-4 stat-card">
+  <div class="card-body">
+    <div class="stat-label">12개월 합계 예상</div>
+    <div class="stat-value">${{ total|floatformat:2 }}</div>
+  </div>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <canvas id="projectionChart" height="100"></canvas>
+  </div>
+</div>
+
+<table class="table">
+  <thead>
+    <tr><th>월</th><th class="text-end">예상 수입 ($)</th></tr>
+  </thead>
+  <tbody>
+    {% for p in projection %}
+      <tr><td>{{ p.label }}</td><td class="text-end">${{ p.amount|floatformat:2 }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const ctx = document.getElementById('projectionChart');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ labels|safe }},
+        datasets: [{
+          label: '예상 배당 ($)',
+          data: {{ values|safe }},
+          backgroundColor: 'rgba(25, 135, 84, 0.6)',
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  });
+</script>
+{% endblock %}

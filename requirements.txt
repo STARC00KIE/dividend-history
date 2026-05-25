@@ -1,0 +1,4 @@
+Django>=5.0,<5.2
+yfinance>=0.2.40
+django-htmx>=1.17
+python-dateutil>=2.9
